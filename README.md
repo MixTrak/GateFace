@@ -58,9 +58,9 @@ cd GateFace</code></pre>
 
   <h3>3. Configure App Launching (Line 76)</h3>
   <p>Modify the <code>subprocess.Popen</code> calls to launch the apps you configured:</p>
-  <pre><code>subprocess.Popen(["chrome"])
-subprocess.Popen(["spotify"])
-subprocess.Popen(["code"])</code></pre>
+  <pre><code>subprocess.run(["open", "-a", APPLICATIONS["chrome"], *URLS])
+subprocess.run(["open", "-a", APPLICATIONS["spotify"], *URLS])
+subprocess.run(["open", "-a", APPLICATIONS["whatsapp"], *URLS])</code></pre>
 
   <p><strong>Tip:</strong> Make sure the names match your OS executable names.</p>
 

@@ -51,9 +51,9 @@ cd GateFace</code></pre>
   <h3>2. Configure Applications (Line 27)</h3>
   <p>Edit the <code>APPS</code> array and add the applications you want:</p>
   <pre><code>APPS = [
-    "chrome",
-    "code",
-    "spotify"
+    "chrome": "/Applications/Google Chrome.app",
+    "code": "/Applications/Visual Studio Code.app"
+    "spotify": "/Applications/Spotify.app"
 ]</code></pre>
 
   <h3>3. Configure App Launching (Line 76)</h3>

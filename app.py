@@ -1,134 +1,131 @@
-import sys
 import os
-import traceback
-import tkinter as tk
-from tkinter import messagebox
 import cv2
-from skimage.metrics import structural_similarity as ssim
 import subprocess
+import tkinter as tk
+from skimage.metrics import structural_similarity as ssim
 
 # ------------------------
-# Error Logging (Step 1)
+# Config
 # ------------------------
-def excepthook(exc_type, exc_value, exc_traceback):
-    """Log uncaught exceptions to error.log"""
-    with open("error.log", "w") as f:
-        traceback.print_exception(exc_type, exc_value, exc_traceback, file=f)
-sys.excepthook = excepthook
-
-# ------------------------
-# Configuration
-# ------------------------
-
 URLS = [
-    "https://www.google.com",
+    "https://music.youtube.com",
+    "https://github.com/MixTrak",
 ]
-
-APPLICATIONS = { 
-    "chrome": "/Applications/Google Chrome.app",
-}
+CHROME = "Google Chrome"
 
 REFERENCE_IMAGE = "img.jpg"
 TEMP_IMAGE = "photo.jpg"
-
-SIMILARITY_THRESHOLD = 0.7
+THRESHOLD = 0.7
 
 # ------------------------
-# Functions
+# Logic
 # ------------------------
-
-def capture_photo():
-    """Capture a photo from the default webcam."""
-    cam = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)  # Step 2: macOS backend
-
+def capture():
+    cam = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)  # macOS backend
     if not cam.isOpened():
-        raise RuntimeError("❌ Could not open webcam. Check camera permissions in System Settings.")
-
+        raise RuntimeError("Could not open webcam. Check System Settings.")
     for _ in range(10):  # warm-up frames
         ret, frame = cam.read()
     cam.release()
-
     if not ret:
-        raise RuntimeError("❌ Failed to capture image from camera.")
+        raise RuntimeError("Capture failed.")
     return frame
 
-
-def save_image(path, image):
-    cv2.imwrite(path, image)
-
-
-def load_grayscale(path):
-    img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
-    if img is None:
-        raise FileNotFoundError(f"Failed to read image: {path}")
-    return img
-
-
-def compare_images(img1, img2):
-    """Compare two images using SSIM and return similarity score (0-1)."""
+def compare(img1, img2):
     img2 = cv2.resize(img2, (img1.shape[1], img1.shape[0]))
     score, _ = ssim(img1, img2, full=True)
     return score
 
-
-def launch_apps():
-    """Launch configured apps and URLs."""
-    subprocess.run(["open", "-a", APPLICATIONS["chrome"], *URLS])
-
-
-def main_logic():
+def run(status_label):
     try:
-        frame = capture_photo()
+        frame = capture()
 
         if not os.path.exists(REFERENCE_IMAGE):
-            save_image(REFERENCE_IMAGE, frame)
-            messagebox.showinfo("Info", f"No existing reference image found.\nSaved first photo as {REFERENCE_IMAGE}")
+            cv2.imwrite(REFERENCE_IMAGE, frame)
+            status_label.config(
+                text="No reference found. Saved first photo.",
+                fg="yellow"
+            )
             return
 
-        save_image(TEMP_IMAGE, frame)
+        cv2.imwrite(TEMP_IMAGE, frame)
+        ref = cv2.imread(REFERENCE_IMAGE, cv2.IMREAD_GRAYSCALE)
+        new = cv2.imread(TEMP_IMAGE, cv2.IMREAD_GRAYSCALE)
 
-        reference_img = load_grayscale(REFERENCE_IMAGE)
-        new_img = load_grayscale(TEMP_IMAGE)
-
-        similarity = compare_images(reference_img, new_img)
-        result_text = f"Similarity score: {similarity*100:.2f}%"
-
-        if similarity >= SIMILARITY_THRESHOLD:
-            messagebox.showinfo("Result", f"{result_text}\n\n✅ Images Are Similar.\nLaunching Apps...")
-            launch_apps()
-        else:
-            messagebox.showwarning("Result", f"{result_text}\n\n❌ Images Are Different.")
-
+        score = compare(ref, new)
         os.remove(TEMP_IMAGE)
 
+        if score >= THRESHOLD:
+            status_label.config(
+                text=f"Similarity {score*100:.1f}% → Launching apps...",
+                fg="lightgreen"
+            )
+            subprocess.run(["open", "-a", CHROME, *URLS])
+        else:
+            status_label.config(
+                text=f"Similarity {score*100:.1f}% → Images differ.",
+                fg="red"
+            )
     except Exception as e:
-        messagebox.showerror("Error", str(e))
-
+        status_label.config(text=f"Error: {str(e)}", fg="orange")
 
 # ------------------------
-# Tkinter GUI
+# Tkinter UI
 # ------------------------
-
-def create_gui():
+def gui():
     root = tk.Tk()
     root.title("Face Match App")
-    root.geometry("400x200")
-
-    # Force window to always be on top
+    root.geometry("460x260")
+    root.configure(bg="#1e1e2f")  # dark theme
     root.attributes("-topmost", True)
 
-    label = tk.Label(root, text="Face Match & App Launcher", font=("Arial", 14))
-    label.pack(pady=20)
+    # Title
+    tk.Label(
+        root,
+        text="Face Match & App Launcher",
+        font=("Helvetica", 16, "bold"),
+        bg="#1e1e2f",
+        fg="white"
+    ).pack(pady=20)
 
-    run_button = tk.Button(root, text="Run Face Match", font=("Arial", 12), command=main_logic)
-    run_button.pack(pady=10)
+    # Buttons frame
+    btn_frame = tk.Frame(root, bg="#1e1e2f")
+    btn_frame.pack(pady=20)
 
-    quit_button = tk.Button(root, text="Exit", font=("Arial", 12), command=root.quit)
-    quit_button.pack(pady=10)
+    status_label = tk.Label(
+        root,
+        text="Waiting...",
+        font=("Helvetica", 13),
+        bg="#1e1e2f",
+        fg="white"
+    )
+    status_label.pack(pady=10)
 
-    print("✅ GUI started")
+    run_btn = tk.Button(
+        btn_frame,
+        text="Run Face Match",
+        font=("Helvetica", 13, "bold"),
+        bg="#4CAF50", fg="white",
+        activebackground="#45a049",
+        activeforeground="black",
+        width=18, height=2,
+        command=lambda: run(status_label)
+    )
+    run_btn.grid(row=0, column=0, padx=10)
+
+    quit_btn = tk.Button(
+        btn_frame,
+        text="Exit",
+        font=("Helvetica", 13, "bold"),
+        bg="#f44336", fg="white",
+        activebackground="#e53935",
+        activeforeground="black",
+        width=10, height=2,
+        command=root.quit
+    )
+    quit_btn.grid(row=0, column=1, padx=10)
+
     root.mainloop()
 
-
 if __name__ == "__main__":
-    create_gui()
+    gui()

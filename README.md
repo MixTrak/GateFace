@@ -40,7 +40,7 @@ cd GateFace</code></pre>
   <h2>⚙️ Configuration</h2>
   <p>You can configure which <strong>URLs</strong> and <strong>applications</strong> GateFace should open once your face is recognized.</p>
 
-  <h3>1. Configure URLs (Line 23)</h3>
+  <h3>1. Configure URLs (Line 10)</h3>
   <p>Edit the <code>URLS</code> array and add the URLs you want:</p>
   <pre><code>URLS = [
     "https://www.google.com",
@@ -48,7 +48,7 @@ cd GateFace</code></pre>
     "https://chat.openai.com"
 ]</code></pre>
 
-  <h3>2. Configure Applications (Line 27)</h3>
+  <h3>2. Configure Applications (Line 14)</h3>
   <p>Edit the <code>APPS</code> array and add the applications you want:</p>
   <pre><code>APPS = [
     "chrome": "/Applications/Google Chrome.app",
@@ -56,7 +56,7 @@ cd GateFace</code></pre>
     "spotify": "/Applications/Spotify.app"
 ]</code></pre>
 
-  <h3>3. Configure App Launching (Line 76)</h3>
+  <h3>3. Configure App Launching (Line 63)</h3>
   <p>Modify the <code>subprocess.Popen</code> calls to launch the apps you configured:</p>
   <pre><code>subprocess.run(["open", "-a", APPLICATIONS["chrome"], *URLS])
 subprocess.run(["open", "-a", APPLICATIONS["spotify"], *URLS])
@@ -86,7 +86,7 @@ subprocess.run(["open", "-a", APPLICATIONS["whatsapp"], *URLS])</code></pre>
   <h2>🖥️ Recommended Setup</h2>
   <ul>
     <li>Use <strong>Visual Studio Code</strong> with the Microsoft Python extension.</li>
-    <li>Enable line numbers to quickly find Lines 23, 27, and 76.</li>
+    <li>Enable line numbers to quickly find Lines 10, 14, and 63.</li>
   </ul>
 </div>
 

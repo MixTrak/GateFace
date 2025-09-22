@@ -68,7 +68,7 @@ subprocess.run(["open", "-a", APPLICATIONS["whatsapp"], *URLS])</code></pre>
   <p>URLs will open in your default browser. If you don’t want this behavior, simply remove the <code>URLS</code> list.</p>
 
   <h3>5. Launch Multiple Applications</h3>
-  <p>Duplicate <code>subprocess.Popen</code> calls for each additional app.</p>
+  <p>Duplicate <code>subprocess.open</code> calls for each additional app.</p>
 </div>
 
 ---
